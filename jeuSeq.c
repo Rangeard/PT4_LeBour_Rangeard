@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
+//prout
 #define N 10 //soit de 8x8
 #define true (1==1)
 #define false !true
