@@ -6,10 +6,10 @@ EXEC=jdv
 all: $(EXEC)
 
 jdv: jdv.o
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) -o bin/$@ bin/$^ $(LDFLAGS)
 
 jdv.o: jdv.c
-	$(CC) -o $@ -c $< $(CFLAGS)
+	$(CC) -o bin/$@ -c $< $(CFLAGS)
 
 clean:
 	rm -rf *.o
@@ -18,4 +18,7 @@ mrproper: clean
 	rm -rf $(EXEC)
 
 db :
-	$(CC) -g jdv.c -o jdv_db $(CFLAGS)
+	$(CC) -g jdv.c -o bin/jdv_db $(CFLAGS)
+
+aff :
+	$(CC) jdv.c -o bin/jdv_aff $(CFLAGS) -DAFF
