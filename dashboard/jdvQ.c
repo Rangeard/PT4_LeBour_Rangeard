@@ -224,8 +224,8 @@ void * thread(void *a)
     int i,j;
     int numThread;
     numThread = *((int *) a);
-    bool fin = false;
-        pthread_mutex_lock(&m2);
+    
+    pthread_mutex_lock(&m2);
 
 for (i = 0; i < 10; i++)
 {
@@ -245,55 +245,10 @@ for (i = 0; i < 10; i++)
                     board[i][j].vivant = true;
                     majVoisins(i,j,true);
                 }
-                else {
-                    pthread_mutex_lock(&m1);
-                    cases_nonchangees++;
-                    pthread_mutex_unlock(&m1);
-                }
             }
         }
-
-        nb_th_finis++;
-
-        if (nb_th_finis == NB_THREADS)
-        {
-			//~ printf("avant tore\n");
-//~ #if defined(AFF)
-            //~ affJeuSDL();
-//~ #endif
-//~ 
-			//~ sleep(5);
-			
-            tor();
-			//~ printf("après tore\n");
-#if defined(AFF)
-            affJeuSDL();
-#endif
-
-            nb_th_finis = 0;
-            pthread_cond_broadcast(&cond);
-        }
-        else {
-            pthread_cond_wait(&cond,&m2);
-        }
-
-        if (cases_nonchangees >= (N*N))
-            fin=true;
-        else cases_nonchangees = 0;
-
-#if defined(AFF)
-        while(SDL_PollEvent(&event) ) {
-            if( event.type == SDL_QUIT )
-                fin = true;//On quitte le programme
-        }
-        sleep(1);
-#endif
-
-    
 }
-        pthread_mutex_unlock(&m2);
 
- //   pthread_exit(NULL);
     return NULL;
 }
 
