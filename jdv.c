@@ -21,14 +21,14 @@
 
 /* Nombre de cellules traitees par un thread */
 #define NB_LIGNES_PAR_THREADS (N-2)/NB_THREADS
-
 struct element {
     bool vivant;
     int nbVoisins;
 };
-
-static struct element **board = NULL;
-static int N; //soit de N-2*N-2 affichee a cause du tore
+#define N 10
+static struct element board[N][N];
+static struct element verif[8][8];
+//~ static int N=10; //soit de N-2*N-2 affichee a cause du tore
 
 
 #if defined(AFF)
@@ -96,65 +96,152 @@ void affJeuSDL(void)
 }
 #endif
 
+void verification(){
+	printf("============================\n=  VERIFICATION\n============================");
+	int i,j,cpt;
+	cpt=0;
+	for (i = 0; i < 8; i++)
+	{
+		for (j = 0; j < 8; j++)
+		{
+			 if(board[i+1][j+1].vivant == verif[i][j].vivant){
+				 cpt++;
+				 printf("ERR %d - %d\n  board = %d\n  verif = %d\n",i,j,board[i+1][j+1].vivant,verif[i][j].vivant);
+			 }
+		}
+		
+	}
+	printf("TOTAL : %d",cpt);
+	
+}
+	
 
-/* TO DO
-void initFromFile( char *filePath )
+// TO DO
+void initBoardFromFile( char *filePath )
 {
 	int i,j;
-	// au cas ou ...
-	i = -1;
+	char c;
+	
+	i = 0;
 	j = -1;
-	
 	FILE * boardFile = NULL;
-	boardFile = fopen(filePath,,"r");
+	boardFile = fopen(filePath,"r");
 	
-	if ( boardFile != NULL ){
+	if ( boardFile != NULL )
+	{
 		do
 		{
+			j++;
+			c = fgetc(boardFile);
 			
-		} while ()
-		
-		
-		
-		
-		fclose(boardFile)
+			if(c=='\n')
+			{
+				j=-1;
+				i++;
+			}
+			else
+			{
+				if(i<N)
+				{
+					if(c == '1')
+						board[i][j].vivant = true;
+					else
+						board[i][j].vivant = false;
+					board[i][j].nbVoisins = -1;
+				}
+				else
+					c = 'p';
+				
+			}
+				
+		} while (c!='p');
+		fclose(boardFile);
 	}
 	else
 		erreur("Impossible d'ouvrir le fichier");
 }
-*/	
+
+
+void initVerifFromFile(char *filePath )
+{
+	int i,j,taille;
+	char c;
+	
+	i = 0;
+	j = -1;
+	taille = 8;
+	FILE * boardFile = NULL;
+	boardFile = fopen(filePath,"r");
+	
+	if ( boardFile != NULL )
+	{
+		do
+		{
+			j++;
+			c = fgetc(boardFile);
+			
+			if(c=='\n'){
+				j=-1;
+				i++;
+			}
+			else
+			{
+				if(i<=taille && j<=taille)
+				{
+					
+					if(c == '1')
+						verif[i][j].vivant = true;
+					else
+						verif[i][j].vivant = false;
+					verif[i][j].nbVoisins = -1;
+				}
+				else
+					c = 'p';
+			}
+			
+		} while (c!='p');
+		fclose(boardFile);
+	}
+	else
+		erreur("Impossible d'ouvrir le fichier");
+}
 
 //Mise en en place du Tor
 void tor(void)
 {
     int i;
-
+       
     //Coin bas droite
-    board[N-1][N-1] = board[1][1];
-
+    board[N-1][N-1].vivant = board[1][1].vivant;
+    board[N-1][N-1].nbVoisins = board[1][1].nbVoisins;
+ 
     //Coin haut gauche
-    board[0][0] = board[N-2][N-2];
+    board[0][0].vivant = board[N-2][N-2].vivant;
+    board[0][0].nbVoisins = board[N-2][N-2].nbVoisins;
 
     //Coin haut droite
-    board[0][N-1] = board[N-2][1];
+    board[0][N-1].vivant = board[N-2][1].vivant;
+    board[0][N-1].nbVoisins = board[N-2][1].nbVoisins;
 
     //Coin bas gauche
-    board[N-1][0] = board[1][N-2];
-
+    board[N-1][0].vivant = board[1][N-2].vivant;
+    board[N-1][0].nbVoisins = board[1][N-2].nbVoisins;
+    
     //copie de la première ligne (1) sur la dernière (N-1)
-    for(i=1; i<N-1; i++) {
-
+    for(i=1; i<N-1; i++) 
+    {
         //copie de la première ligne (1) sur la dernière (N-1)
-        board[N-1][i] = board[1][i];
-
+        board[N-1][i].vivant = board[1][i].vivant;
+		board[N-1][i].nbVoisins = board[1][i].nbVoisins;
         //copie de la dernière ligne (N-1) sur la première (0)
-        board[0][i] = board[N-2][i];
-
+        board[0][i].vivant = board[N-2][i].vivant;
+		board[0][i].nbVoisins = board[N-2][i].nbVoisins;
         //copie de la première colonne (1) sur la dernière (N-1)
-        board[i][N-1] = board[i][1];
-
+        board[i][N-1].vivant = board[i][1].vivant;
+		board[i][N-1].nbVoisins = board[i][1].nbVoisins;
         //copie de la dernière colonne (N-1) sur la première (0)
-        board[i][0] = board[i][N-2];
+        board[i][0].vivant = board[i][N-2].vivant;
+        board[i][0].nbVoisins = board[i][N-2].nbVoisins;
     }
 }
 
@@ -196,27 +283,97 @@ int nbVoisins(int i, int j)
     return res;
 }
 
+void initJeuTest(void)
+{
+	int i,j;
+	for (i = 1; i < N-1; i++)
+	{
+		for (j = 1; j < N-1; j++)
+		{
+			board[i][j].vivant = false;
+			
+		}
+		
+	}
+
+	board[1][1].vivant = true;
+	board[1][2].vivant = true;
+	board[1][8].vivant = true;
+	board[2][1].vivant = true;
+	board[2][6].vivant = true;
+	board[3][4].vivant = true;
+	board[3][6].vivant = true;
+	board[3][7].vivant = true;
+	board[4][4].vivant = true;
+	board[5][4].vivant = true;
+	board[6][3].vivant = true;
+	board[6][6].vivant = true;
+	board[6][8].vivant = true;
+	board[7][3].vivant = true;
+	board[7][4].vivant = true;
+	board[7][7].vivant = true;
+	board[7][8].vivant = true;
+	board[8][6].vivant = true;
+	
+	for (i = 0; i < 8; i++)
+	{
+		for (j = 1; j < 8; j++)
+		{
+			verif[i][j].vivant = false;
+			
+		}
+		
+	}
+	
+	verif[1][1].vivant = true;
+	verif[1][2].vivant = true;
+	verif[1][7].vivant = true;
+	verif[1][8].vivant = true;
+	verif[2][1].vivant = true;
+	verif[2][2].vivant = true;
+	verif[2][5].vivant = true;
+	verif[2][6].vivant = true;
+	verif[3][6].vivant = true;
+	verif[3][7].vivant = true;
+	verif[4][3].vivant = true;
+	verif[4][4].vivant = true;
+	verif[5][3].vivant = true;
+	verif[5][4].vivant = true;
+	verif[5][5].vivant = true;
+	verif[6][3].vivant = true;
+	verif[6][5].vivant = true;
+	verif[6][8].vivant = true;
+	verif[7][3].vivant = true;
+	verif[7][4].vivant = true;
+	verif[7][5].vivant = true;
+	verif[7][6].vivant = true;
+	verif[7][8].vivant = true;
+	verif[8][2].vivant = true;
+	verif[8][3].vivant = true;	
+} 
+	
+
+
 void initJeu(void)
 {
     int i,j;
-    srandom(time(NULL));
-    for (i=1; i<N-1; i++)
-        for (j=1; j<N-1; j++)
-        {
-            if (random()%2)
-                board[i][j].vivant = true;
-            else
-                board[i][j].vivant = false;
-        }
-
+    //~ srandom(time(NULL));
+    //~ for (i=1; i<N-1; i++)
+        //~ for (j=1; j<N-1; j++)
+        //~ {
+            //~ if (random()%2)
+                //~ board[i][j].vivant = true;
+            //~ else
+                //~ board[i][j].vivant = false;
+        //~ }
+        
     for (i=1; i<N-1; i++)
         for (j=1; j<N-1; j++)
         {
             board[i][j].nbVoisins = nbVoisins(i,j);
         }
-
-tor();
-
+ 
+       tor();
 }
 
 void * thread(void *a)
@@ -227,7 +384,7 @@ void * thread(void *a)
     bool fin = false;
         pthread_mutex_lock(&m2);
 
-for (i = 0; i < 10; i++)
+for (i = 0; i < 2; i++)
 {
 	
         for(i=(numThread*NB_LIGNES_PAR_THREADS)+1; i<(numThread*NB_LIGNES_PAR_THREADS)+NB_LIGNES_PAR_THREADS+1; i++)
@@ -293,16 +450,14 @@ for (i = 0; i < 10; i++)
 }
         pthread_mutex_unlock(&m2);
 
- //   pthread_exit(NULL);
     return NULL;
 }
 
-int main(int argc, char ** argv)
+ int main(int argc, char ** argv)
 {
     int i=0;
     int j;
-    N = atoi(argv[1])+2;
-
+    //~ N = atoi(argv[1])+2;
     struct timeval tpDeb;
     struct timeval tpFin;
 
@@ -314,21 +469,25 @@ int main(int argc, char ** argv)
     pthread_mutex_init(&m2,NULL);
     pthread_cond_init(&cond,NULL);
 
-    /* Creation de la matrice */
-    board = (struct element **) malloc(N*sizeof(struct element *));
-    for (i=0; i<N; i++) {
-        board[i] = (struct element *) malloc(N*sizeof(struct element));
-    }
+    //~ /* Creation de la matrice */
+	//~ board = (struct element **) malloc(N*sizeof(struct element *));
+    //~ 
+    //~ for (i=0; i<N; i++) 
+    //~ {
+        //~ board[i] = (struct element *) malloc(N*sizeof(struct element));
+    //~ }
 
-    initJeu();
-
+    //~ initBoardFromFile("start.board");
+	//~ initVerifFromFile("nextgen.board");
+	initJeuTest();
+	initJeu();
 #if defined(AFF)
     initSDL();
     affJeuSDL();
 #endif
 
-    gettimeofday(&tpDeb,NULL);
-    printf("Tps dbt: %d\n" ,tpDeb);
+    //~ gettimeofday(&tpDeb,NULL);
+    //~ printf("Tps dbt: %d\n" ,tpDeb);
 
     /* Creation des threads */
     for (i=0; i<NB_THREADS; i++) {
@@ -339,13 +498,22 @@ int main(int argc, char ** argv)
     for (i=0; i<NB_THREADS; i++) {
         pthread_join(th[i],NULL);
     }
-    gettimeofday(&tpFin,NULL);
+    
+    verification();
+    
+    
+    
+    
+    
+    
+    
+    //~ gettimeofday(&tpFin,NULL);
 
-    printf("Tps fin: %d\n" ,tpFin);
-
-    long tt = tpFin.tv_usec - tpDeb.tv_usec;
-
-    printf("TOTAL = %d\n",(int)tt);
+    //~ printf("Tps fin: %d\n" ,tpFin);
+//~ 
+    //~ long tt = tpFin.tv_usec - tpDeb.tv_usec;
+//~ 
+    //~ printf("TOTAL = %d\n",(int)tt);
 
     /* Destruction des mutex et de la variable condition */
     pthread_mutex_destroy(&m1);
@@ -354,10 +522,10 @@ int main(int argc, char ** argv)
     pthread_cond_destroy(&cond);
 
     // desallocation matrice
-    for (i=0; i<N; i++) {
-        free(board[i]);
-    }
-    free(board);
+    //~ for (i=0; i<N; i++) {
+        //~ free(board[i]);
+    //~ }
+    //~ free(board);
 
 #if defined(AFF)
     SDL_FreeSurface(cellule);

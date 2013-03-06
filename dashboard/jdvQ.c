@@ -196,10 +196,15 @@ int nbVoisins(int i, int j)
     return res;
 }
 
-void initJeu(void)
+void initJeu(bool testInit)
 {
     int i,j;
-    srandom(time(NULL));
+    
+    if(testInit)
+		srandom(1);
+    else
+		srandom(time(NULL));
+		
     for (i=1; i<N-1; i++)
         for (j=1; j<N-1; j++)
         {
@@ -215,7 +220,7 @@ void initJeu(void)
             board[i][j].nbVoisins = nbVoisins(i,j);
         }
 
-tor();
+	tor();
 
 }
 
@@ -225,7 +230,6 @@ void * thread(void *a)
     int numThread;
     numThread = *((int *) a);
     
-    pthread_mutex_lock(&m2);
 
 for (i = 0; i < 10; i++)
 {
@@ -275,7 +279,7 @@ int main(int argc, char ** argv)
         board[i] = (struct element *) malloc(N*sizeof(struct element));
     }
 
-    initJeu();
+    initJeu(true);
 
 #if defined(AFF)
     initSDL();

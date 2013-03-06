@@ -12,7 +12,7 @@ jdv.o: jdv.c
 	$(CC) -o bin/$@ -c $< $(CFLAGS)
 
 clean:
-	rm -rf *.o
+	rm -rf bin/*.o bin/jdv bin/jdv_aff
 
 mrproper: clean
 	rm -rf $(EXEC)
